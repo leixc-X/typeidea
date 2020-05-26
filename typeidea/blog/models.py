@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
 from django.db import models
+import mistune
 
 
 class Category(models.Model):
@@ -11,16 +12,17 @@ class Category(models.Model):
         (STATUS_NORMAL, '正常'),
         (STATUS_DELETE, '删除'),
     )
-
+    # max_length参数
     name = models.CharField(max_length=50, verbose_name="名称")
     status = models.PositiveIntegerField(default=STATUS_NORMAL, choices=STATUS_ITEMS, verbose_name="状态")
     is_nav = models.BooleanField(default=False, verbose_name="是否为导航")
     owner = models.ForeignKey(User, verbose_name="作者")
+    # auto_now_add配置为True时 Django会默认填充上当前时间
     created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
 
     class Meta:
         verbose_name = verbose_name_plural = '分类'
-
+    # 双下方法str打印的是具体属性值 name，如果没有打印的是对象地址
     def __str__(self):
         return self.name
 
@@ -56,6 +58,7 @@ class Post(models.Model):
     )
 
     title = models.CharField(max_length=255, verbose_name="标题")
+    # blank参数设置True代表该值是否可以为空
     desc = models.CharField(max_length=1024, blank=True, verbose_name="摘要")
     content = models.TextField(verbose_name="正文", help_text="正文必须为MarkDown格式")
     status = models.PositiveIntegerField(default=STATUS_NORMAL, choices=STATUS_ITEMS, verbose_name="状态")
@@ -63,10 +66,16 @@ class Post(models.Model):
     tag = models.ManyToManyField(Tag, verbose_name="标签")
     owner = models.ForeignKey(User, verbose_name="作者")
     created_time = models.DateTimeField(auto_now_add=True, verbose_name="创建时间")
+    # editable是否可编辑,默认为True，设置为False则不显示这个字段
+    content_html = models.TextField(verbose_name="正文html代码", blank=True, editable=False)
 
     pv = models.PositiveIntegerField(default=1)
     uv = models.PositiveIntegerField(default=1)
 
+    def save(self, *args, **kwargs):
+        self.content_html = mistune.markdown(self.content)
+        super().save(*args, **kwargs)
+    # 配置属性，展示名称
     class Meta:
         verbose_name = verbose_name_plural = "文章"
 

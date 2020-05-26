@@ -1,10 +1,13 @@
 from django.views.generic import ListView, DetailView
 from django.shortcuts import get_object_or_404
+from comment.forms import CommentForm
+from comment.models import Comment
 
 from config.models import SideBar
 from .models import Post, Category, Tag
+from django.db.models import Q
 
-
+# 处理通用的数据
 class CommonViewMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -36,6 +39,7 @@ class CommonViewMixin:
 class IndexView(CommonViewMixin, ListView):
     queryset = Post.objects.filter(status=Post.STATUS_NORMAL)
     paginate_by = 5
+    # 如果没有此项，在模板中需要使用object_list变量
     context_object_name = 'post_list'
     template_name = 'blog/list.html'
 
@@ -58,6 +62,7 @@ class CategoryView(IndexView):
 
 
 class TagView(IndexView):
+    # get_context_data用来渲染到模板中所有的上下文
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         tag_id = self.kwargs.get('tag_id')
@@ -75,7 +80,32 @@ class TagView(IndexView):
 
 
 class PostDetailView(CommonViewMixin, DetailView):
-    queryset = Post.objects.filter(status=Post.STATUS_NORMAL)
+    queryset = Post.latest_posts()
     template_name = 'blog/detail.html'
     context_object_name = 'post'
     pk_url_kwarg = 'post_id'
+
+
+
+
+# 引入Q包，实现SQL语句
+class SearchView(IndexView):
+    def get_context_data(self):
+        context = super().get_context_data()
+        context.update({
+            'keyword': self.request.GET.get('keyword', '')
+        })
+        return context
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        keyword = self.request.GET.get('keyword')
+        if not keyword:
+            return queryset
+        return queryset.filter(Q(title__icontains=keyword) | Q(desc__icontains=keyword))
+
+class AuthorView(IndexView):
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        author_id = self.kwargs.get('owner_id')
+        return queryset.filter(owner__id=author_id)

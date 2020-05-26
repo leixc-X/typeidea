@@ -22,8 +22,8 @@
                 </li>
                 {% endfor %}
             </ul>
-            <form class="form-inline my-2 my-lg-0 action='GET'">
-                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+            <form class="form-inline my-2 my-lg-0" action='/search/' method="GET">
+                <input class="form-control mr-sm-2" type="search" name="keyword" placeholder="Search" aria-label="Search" value="{{ keyword }}">
                 <button class="btn btn-outline-success" type="submit">搜索</button>
 
             </form>
@@ -48,13 +48,7 @@
                 <p>
                     网名：LXC1997YE,  &nbsp;大四在校学生
                 </p>
-
             </div>
-
-        </div>
-
-    </div>
-        <div class="col-3">
             {% block sidebar %}
                 {% for sidebar in sidebars %}
                 <div class="card sidebar">
@@ -70,7 +64,12 @@
             {% endblock %}
 
         </div>
-    </div>
+        </div>
+            <div class="col-3">
+
+
+            </div>
+        </div>
 
 
 </div>

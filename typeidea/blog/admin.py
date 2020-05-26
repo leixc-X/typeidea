@@ -36,16 +36,19 @@ class TagAdmin(BaseOwnerAdmin):
 
 
 
-
+# 继承SimpleListFilter类
 class CategoryOwnerFilter(admin.SimpleListFilter):
     """ 自定义过滤器只展示当前用户分类 """
 
     title = '分类过滤器'
+    # 查询时URL参数名字
     parameter_name = 'owner_category'
 
+    # lookups返回要展示的内容和查询用的id
     def lookups(self, request, model_admin):
         return Category.objects.filter(owner=request.user).values_list('id', 'name')
 
+    # 根据URL Query的内容返回列表页数据,queryset就是post数据集
     def queryset(self, request, queryset):
         category_id = self.value()
         if category_id:
@@ -61,7 +64,7 @@ class PostAdmin(BaseOwnerAdmin):
         'created_time', 'owner', 'operator'
     ]
     list_display_links = []
-
+    # 配置页面过滤器
     list_filter = [CategoryOwnerFilter, ]
     search_fields = ['title', 'category__name']
     save_on_top = True
@@ -94,6 +97,7 @@ class PostAdmin(BaseOwnerAdmin):
             'fields': ('tag', ),
         })
     )
+    # filter_vertical用来处理多对多字段展示效果(纵向) horizontal为横向
     filter_vertical = ('tag', )
 
     def operator(self, obj):

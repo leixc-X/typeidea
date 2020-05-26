@@ -53,6 +53,7 @@ class SideBar(models.Model):
     def get_all(cls):
         return cls.objects.filter(status=cls.STATUS_SHOW)
 
+    # @property装饰器就是负责把一个方法变成属性调用
     @property
     def content_html(self):
         """ 直接渲染模板 """
